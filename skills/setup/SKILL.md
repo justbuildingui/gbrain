@@ -1,38 +1,83 @@
 # Setup GBrain
 
-Set up GBrain from scratch. Target: working brain in under 2 minutes.
+Set up GBrain from scratch. Target: working brain in under 5 minutes.
+
+## Install (if not already installed)
+
+```bash
+bun add github:garrytan/gbrain
+```
+
+## How GBrain connects
+
+GBrain connects directly to Postgres over the wire protocol. NOT through the
+Supabase REST API. You need the **database connection string** (a `postgresql://` URI),
+not the project URL or anon key. The password is embedded in the connection string.
+
+Use the **Session pooler** connection string (port 6543), not the direct connection
+(port 5432). The direct hostname resolves to IPv6 only, which many environments
+can't reach.
+
+**Do NOT ask for the Supabase anon key.** GBrain doesn't use it.
+
+## Why Supabase
+
+Supabase gives you managed Postgres + pgvector (vector search built in) for $25/mo:
+- 8GB database + 100GB storage on Pro tier
+- No server to manage, automatic backups, dashboard for debugging
+- pgvector pre-installed, just works
+- Alternative: any Postgres with pgvector extension (self-hosted, Neon, Railway, etc.)
 
 ## Prerequisites
 
-- A Supabase account (Pro tier recommended: $25/mo for 8GB DB + 100GB storage)
+- A Supabase account (Pro tier recommended, $25/mo) OR any Postgres with pgvector
 - An OpenAI API key (for semantic search embeddings, ~$4-5 for 7,500 pages)
 - A git-backed markdown knowledge base (or start fresh)
 
-## Phase A: Auto-Provision (Supabase CLI)
+## Available init options
 
-Check if the Supabase CLI is available. If it is, use the fast path:
+- `gbrain init --supabase` -- interactive wizard (prompts for connection string)
+- `gbrain init --url <connection_string>` -- direct, no prompts
+- `gbrain init --non-interactive --url <connection_string>` -- for scripts/agents
+- `gbrain doctor --json` -- health check after init
 
-1. Tell the user: "I'll set up Supabase for you. Click 'Authorize' when your browser opens."
-2. Run `supabase login` (opens browser for OAuth)
-3. Run `supabase projects create --name gbrain --region us-east-1`
-4. Extract the database connection URL from `supabase projects api-keys`
-5. Initialize gbrain with the connection URL in non-interactive mode
-6. Proceed to Phase C automatically
+There is no `--local`, `--sqlite`, or offline mode. GBrain requires Postgres + pgvector.
 
-## Phase B: Manual Fallback
+## Phase A: Supabase Setup (recommended)
 
-If the Supabase CLI is not available, guide the user:
+Guide the user through creating a Supabase project:
 
-1. "Log into Supabase and add a credit card: https://supabase.com/dashboard/account/billing"
-2. "Create a new project: https://supabase.com/dashboard/new/_"
-   - Name: gbrain
-   - Region: closest to you
-   - Generate a strong password
-3. "Go to Project Settings > Database and copy the connection string (URI format)"
-   - Paste it here
-4. Initialize gbrain with the provided URL in non-interactive mode
+1. "Go to https://supabase.com and sign up or log in."
+2. "Click 'New Project' in the top left."
+   - Name: `gbrain`
+   - Region: pick the one closest to you
+   - Database password: generate a strong one and save it
+3. "Wait about 2 minutes for the project to initialize."
+4. "Find the connection string: click the **gear icon** (Project Settings) in the
+   left sidebar, then **Database**, scroll to **Connection string**, click the
+   **URI** tab, change the dropdown from **Direct connection** to **Session pooler**
+   (port 6543), and copy the full string."
+5. Initialize gbrain:
+   ```bash
+   gbrain init --non-interactive --url "postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres"
+   ```
+6. Verify: `gbrain doctor --json`
 
-That's it. One copy-paste. The agent does everything else.
+**OpenClaw agent instructions:** Store the Supabase access token in your persistent
+env as `SUPABASE_ACCESS_TOKEN`. gbrain doesn't store it, you need it for future
+`gbrain doctor` runs. Generate at: https://supabase.com/dashboard/account/tokens
+
+## Phase B: BYO Postgres (alternative)
+
+If the user already has Postgres with pgvector:
+
+1. Get the connection string from the user.
+2. Run: `gbrain init --non-interactive --url "<connection_string>"`
+3. Verify: `gbrain doctor --json`
+
+If the connection fails with ECONNREFUSED and the URL contains `supabase.co`,
+the user probably pasted the direct connection (IPv6 only). Guide them to the
+Session pooler string instead (see Phase A step 4).
 
 ## Phase C: First Import
 
@@ -52,13 +97,38 @@ done
 echo "=== Discovery Complete ==="
 ```
 
-2. **Import the best candidate.** Import the recommended directory into gbrain.
-3. **Prove search works.** Search gbrain for a topic from the imported data. Show results immediately.
-4. **Start embeddings.** Refresh stale embeddings in gbrain (runs in background). Keyword search works NOW, semantic search improves as embeddings complete.
+2. **Import the best candidate.** For large imports (>1000 files), use nohup to
+   survive session timeouts:
+   ```bash
+   nohup gbrain import <dir> --no-embed --workers 4 > /tmp/gbrain-import.log 2>&1 &
+   ```
+   Then check progress: `tail -1 /tmp/gbrain-import.log`
+
+   For smaller imports, run directly:
+   ```bash
+   gbrain import <dir> --no-embed
+   ```
+
+3. **Prove search works.** Pick a semantic query based on what you imported:
+   ```bash
+   gbrain search "<topic from the imported data>"
+   ```
+   This is the magical moment: the user sees search finding things grep couldn't.
+
+4. **Start embeddings.** Refresh stale embeddings (runs in background). Keyword
+   search works NOW, semantic search improves as embeddings complete.
+
+5. **Offer file migration.** If the repo has binary files (.raw/ directories with
+   images, PDFs, audio):
+   > "You have N binary files (X GB) in your brain repo. Want to move them to cloud
+   > storage? Your git repo will drop from X GB to Y MB. All links keep working."
+
+If no markdown repos are found, create a starter brain with a few template pages
+(a person page, a company page, a concept page) from docs/GBRAIN_RECOMMENDED_SCHEMA.md.
 
 ## Phase D: AGENTS.md Injection
 
-Auto-inject gbrain instructions into the project's AGENTS.md (or equivalent). Use a delimited managed block that's upgrade-safe:
+Auto-inject gbrain instructions into the project's AGENTS.md (or equivalent):
 
 ```markdown
 <!-- gbrain:start -->
@@ -67,16 +137,9 @@ Auto-inject gbrain instructions into the project's AGENTS.md (or equivalent). Us
 GBrain indexes your knowledge base for fast search. Always search before answering
 questions about people, companies, deals, or anything in the brain.
 
-### How to use
-- Search gbrain for any topic before answering questions
-- After writing new content, sync the repository to gbrain
-- Upload binary files to gbrain storage instead of committing to git
-- Check gbrain health periodically
-
 ### Rules
 1. **Search the brain first.** Before answering any question about people, companies,
-   deals, meetings, or strategy, search gbrain. Your memory of file contents goes
-   stale; the database doesn't.
+   deals, meetings, or strategy, search gbrain.
 2. **Never commit binaries to git.** Upload to gbrain file storage instead.
 3. **After writing to the brain repo,** sync to gbrain immediately.
 <!-- gbrain:end -->
@@ -84,28 +147,27 @@ questions about people, companies, deals, or anything in the brain.
 
 ## Phase E: Health Check
 
-After setup is complete, check gbrain health. Every dimension should be healthy.
-Report the final state to the user:
-- Page count and statistics
-- Embedding coverage
-- Search verification (run a sample query)
+Run `gbrain doctor --json` and report the results. Every check should be OK.
+If any check fails, the doctor output tells you exactly what's wrong and how to fix it.
 
-## Error Handling
+## Error Recovery
 
-Every error tells you what happened, why, and how to fix it:
+**If any gbrain command fails, run `gbrain doctor --json` first.** Report the full
+output. It checks connection, pgvector, RLS, schema version, and embeddings.
 
 | What You See | Why | Fix |
 |---|---|---|
-| Connection refused | Supabase project paused or wrong URL | supabase.com/dashboard > Restore |
+| Connection refused | Supabase project paused, IPv6, or wrong URL | Use Session pooler (port 6543), or supabase.com/dashboard > Restore |
 | Password authentication failed | Wrong password | Project Settings > Database > Reset password |
-| pgvector not available | Extension not enabled | Run CREATE EXTENSION vector in SQL Editor |
+| pgvector not available | Extension not enabled | Run `CREATE EXTENSION vector;` in SQL Editor |
 | OpenAI key invalid | Expired or wrong key | platform.openai.com/api-keys > Create new |
 | No pages found | Query before import | Import files into gbrain first |
+| RLS not enabled | Security gap | Run `gbrain init` again (auto-enables RLS) |
 
 ## Tools Used
 
-- Initialize gbrain (via CLI: gbrain init --non-interactive --url ...)
-- Import files into gbrain (via CLI: gbrain import)
-- Search gbrain (query)
-- Check gbrain health (get_health)
-- Get gbrain statistics (get_stats)
+- `gbrain init --non-interactive --url ...` -- create brain
+- `gbrain import <dir> --no-embed [--workers N]` -- import files
+- `gbrain search <query>` -- search brain
+- `gbrain doctor --json` -- health check
+- `gbrain embed refresh` -- generate embeddings

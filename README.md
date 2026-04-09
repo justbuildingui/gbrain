@@ -109,51 +109,45 @@ Without an OpenAI key, search still works (keyword only, no vector search). With
 
 ### With OpenClaw (recommended)
 
-If you're running OpenClaw, paste this to set up your brain. Make sure your API keys are set in the environment first.
+To install, paste this into OpenClaw and we'll work with you to do the rest:
 
 ```
-You: "Set up gbrain (https://github.com/garrytan/gbrain) as my knowledge brain.
-      I need you to:
-      1. Make sure bun is installed (curl -fsSL https://bun.sh/install | bash), then run: bun add gbrain
-      2. Run: gbrain init --supabase (follow the wizard to connect my Supabase database)
-      3. Scan ~/git/ and ~/Documents/ for markdown repos, pick the best one, and run: gbrain import <path>
-      4. Run a query against the imported data to prove search works -- pick the query based on what you imported
-      5. Read https://github.com/garrytan/gbrain/blob/master/docs/GBRAIN_RECOMMENDED_SCHEMA.md and offer to restructure my knowledge base"
+Set up gbrain (https://github.com/garrytan/gbrain) as my knowledge brain.
+1. Make sure bun is installed (curl -fsSL https://bun.sh/install | bash), then run: bun add github:garrytan/gbrain
+2. Run: gbrain init --supabase (follow the wizard to connect my Supabase database)
+3. Scan ~/git/ and ~/Documents/ for markdown repos, pick the best one, and run: gbrain import <path> --no-embed
+4. Run a query against the imported data to prove search works
+5. Read https://github.com/garrytan/gbrain/blob/master/docs/GBRAIN_RECOMMENDED_SCHEMA.md and offer to restructure my knowledge base
 ```
 
-OpenClaw will install the package, walk through the Supabase connection wizard, discover your markdown files, import them into Supabase, prove search works with a query from your data, and learn the 7 brain skills (ingest, query, maintain, enrich, briefing, migrate, install).
+OpenClaw will install gbrain, walk through Supabase setup, discover your markdown files, import them, and prove search works with a query from your data.
 
 After setup, you talk to your brain through OpenClaw:
 
 ```
-You: "Search the brain for everything we know about [topic from your data]"
-You: "Ingest my meeting notes from today"
-You: "Give me a briefing for my meetings tomorrow"
-You: "How many pages are in the brain now?"
+Search the brain for everything we know about [topic]
+Ingest my meeting notes from today
+Give me a briefing for my meetings tomorrow
+How many pages are in the brain now?
 ```
 
-OpenClaw reads the skill files in `skills/`, figures out which gbrain commands to run, and does the work. You never touch the CLI directly unless you want to.
+GBrain keeps your brain current. After setup, `gbrain sync --watch` polls your git repo and imports only what changed. Binary files (images, PDFs, audio) can be moved to cloud storage with `gbrain files mirror` to slim down your git repo.
 
-GBrain keeps your brain current automatically. After setup, `gbrain sync --watch` polls your git repo and imports only what changed. Binary files (images, PDFs, audio) can be moved to Supabase Storage with `gbrain files sync` to slim down your git repo.
-
-### With ClawHub
-
-```bash
-clawhub install gbrain
-```
-
-ClawHub installs the bundle plugin, configures the MCP server, and auto-runs the setup skill. Each brain should have its own Supabase project (one project per person or team).
+> **Supabase settings:** GBrain connects directly to Postgres (not the REST API).
+> You need the **Session pooler connection string** (port 6543), not the project URL
+> or anon key. Find it: Project Settings > Database > Connection string > URI tab >
+> change dropdown to "Session pooler".
 
 ### Standalone CLI
 
 ```bash
-bun add -g gbrain
+bun add -g github:garrytan/gbrain
 ```
 
 ### As a library
 
 ```bash
-bun add gbrain
+bun add github:garrytan/gbrain
 ```
 
 ```typescript
