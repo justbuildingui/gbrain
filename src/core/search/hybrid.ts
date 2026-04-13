@@ -105,7 +105,7 @@ export async function hybridSearch(
  * Each result gets score = sum(1 / (K + rank)) across all lists it appears in.
  * After accumulation: normalize to 0-1, then boost compiled_truth chunks.
  */
-function rrfFusion(lists: SearchResult[][], k: number): SearchResult[] {
+export function rrfFusion(lists: SearchResult[][], k: number): SearchResult[] {
   const scores = new Map<string, { result: SearchResult; score: number }>();
 
   for (const list of lists) {
@@ -193,7 +193,7 @@ async function cosineReScore(
   }).sort((a, b) => b.score - a.score);
 }
 
-function cosineSimilarity(a: Float32Array, b: Float32Array): number {
+export function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   let dot = 0, magA = 0, magB = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i];
