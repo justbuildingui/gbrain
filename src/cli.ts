@@ -269,7 +269,7 @@ async function handleCliOnly(command: string, args: string[]) {
       }
       case 'serve': {
         const { runServe } = await import('./commands/serve.ts');
-        await runServe(engine);
+        await runServe(engine, args);
         return; // serve doesn't disconnect
       }
       case 'call': {
@@ -391,6 +391,9 @@ ADMIN
   revert <slug> <version-id>         Revert to version
   config [show|get|set] <key> [val]  Brain config
   serve                              MCP server (stdio)
+  serve --http [--port N]            HTTP MCP server with OAuth 2.1
+    --token-ttl N                    Access token TTL in seconds (default: 3600)
+    --enable-dcr                     Enable Dynamic Client Registration
   call <tool> '<json>'               Raw tool invocation
   version                            Version info
   --tools-json                       Tool discovery (JSON)
