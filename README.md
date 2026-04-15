@@ -105,7 +105,7 @@ GBrain ships 25 skills organized by `skills/RESOLVER.md`. The resolver tells you
 | **citation-fixer** | Scans pages for missing or malformed citations. Fixes format to match the standard. |
 | **repo-architecture** | Where new brain files go. Decision protocol: primary subject determines directory, not format. |
 | **publish** | Share brain pages as password-protected HTML. Zero LLM calls. |
-| **data-research** | Structured data research with parameterized YAML recipes. Extract investor updates, donations, company metrics from email. |
+| **data-research** | Structured data research with parameterized YAML recipes. Extract investor updates, expenses, company metrics from email. |
 
 ### Operational
 
@@ -173,7 +173,7 @@ GBrain ships integration recipes that your agent sets up for you. Each recipe te
 | [Calendar-to-Brain](recipes/calendar-to-brain.md) | credential-gateway | Google Calendar to searchable daily pages |
 | [Meeting Sync](recipes/meeting-sync.md) | — | Circleback transcripts to brain pages with attendees |
 
-**Data research recipes** extract structured data from email into tracked brain pages. Built-in recipes for investor updates (MRR, ARR, runway, headcount), political donations, and company metrics. Create your own with `gbrain research init`.
+**Data research recipes** extract structured data from email into tracked brain pages. Built-in recipes for investor updates (MRR, ARR, runway, headcount), expense tracking, and company metrics. Create your own with `gbrain research init`.
 
 Run `gbrain integrations` to see status.
 
