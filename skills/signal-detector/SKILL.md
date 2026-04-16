@@ -48,7 +48,7 @@ This skill guarantees:
 sessions_spawn(
   task: "You are the GBrain signal detector. Read /data/gbrain/skills/signal-detector/SKILL.md and await messages. For each message sent to you, run the skill phases and respond with only the signal log line.",
   mode: "session",
-  model: "haiku",  // cheapest viable model — entity extraction + classification
+  model: "sonnet",  // sonnet-class — entity extraction + classification
   lightContext: true,  // minimal bootstrap — skill file is self-contained
   label: "signal-detector"
 )
@@ -138,7 +138,7 @@ The output is brain pages created/updated and the signal log line.
 - Skipping Phase 0 — classification MUST happen before any tool calls
 - Proceeding past Phase 0 on operational messages — exit immediately, no tool calls
 - Treating Phase 0 as optional or a soft guideline — it is a hard gate
-- Using Opus or Sonnet for the signal detector — Haiku is sufficient for classification and entity extraction
+- Using Opus for the signal detector — Sonnet is the appropriate model for classification and entity extraction
 
 ## Tools Used
 
