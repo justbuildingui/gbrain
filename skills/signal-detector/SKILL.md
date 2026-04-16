@@ -3,9 +3,8 @@ name: signal-detector
 version: 1.0.0
 description: |
   Always-on ambient signal capture. Fires on every inbound message to detect
-  original thinking and entity mentions. Runs as a PERSISTENT SESSION (not a
-  fresh spawn per message) — started once at session boot, reused via
-  sessions_send for every subsequent message. Never blocks main response.
+  original thinking and entity mentions. Spawns a lightweight sub-agent
+  per message (async, fire-and-forget). Never blocks main response.
 triggers:
   - every inbound message (always-on)
 tools:
@@ -33,7 +32,7 @@ intellectual capital. Entities are bookkeeping. Both compound over time.
 
 This skill guarantees:
 - Fires on every message (no exceptions unless purely operational)
-- Runs as a **per-message spawn** (`mode: run`) — persistent session mode is not available in this environment (requires thread-bound channel plugin hooks)
+- Spawns a lightweight sub-agent per message (`mode: run`) — async, fire-and-forget
 - Runs in parallel (never blocks main response)
 - Captures ideas with the user's EXACT phrasing (no paraphrasing)
 - Detects entity mentions and creates/enriches brain pages
@@ -54,9 +53,6 @@ sessions_spawn(
 )
 ```
 Fire-and-forget. Do NOT block the main response waiting for completion.
-
-**Note:** Persistent session mode (`mode: session`) would be preferred for cache efficiency but requires
-thread-bound channel plugin hooks not available in this deployment. Use `mode: run` per message.
 
 ## Iron Law: Back-Linking (MANDATORY)
 
@@ -123,7 +119,6 @@ The output is brain pages created/updated and the signal log line.
 ## Anti-Patterns
 
 - **Blocking main response** to wait for signal detection to complete — always fire-and-forget
-- Blocking the main response to wait for signal detection to complete
 - Paraphrasing the user's original thinking instead of capturing exact phrasing
 - Creating pages for non-notable entities (one-off mentions)
 - Skipping back-links after creating/updating pages
