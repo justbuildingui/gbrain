@@ -39,8 +39,9 @@ mutating: true
 This skill guarantees:
 - Every ingested source produces a page that passes the **5-Question Quality Test** (see below)
 - All 8 content categories are populated — no skipped sections
-- Episode file filed under `sources/{series-name}/{guest-slug}.md`
+- Episode file filed under `media/podcasts/{series-name}/{guest-slug}.md`
 - People page created/updated at `people/{guest-slug}.md` with back-link to episode file
+- Both pages have bidirectional back-links to each other
 - Every claim has an inline `[Source: ...]` citation
 - Additional entities (people, companies, funds) mentioned are detected and flagged for enrichment
 - Cross-cut files updated when 3+ episodes in a series are ingested
@@ -70,6 +71,15 @@ Before marking any source complete, verify all five:
 3. If a page exists, read it — carry forward what's already there; don't duplicate.
 4. Identify: guest name, series name, episode title, source URL or file path.
 5. Derive slugs: `{guest-slug}` (e.g., `erik-serrano`), `{series-name}` (e.g., `invest-like-the-best`).
+
+**Raw transcript location for ILTB:** `/data/brain/sources/invest-like-the-best/_raw-transcripts/`
+When processing ILTB episodes, read the raw transcript from that folder.
+
+**Output file locations (MANDATORY — do not use sources/ for output):**
+- Episode content page: `media/podcasts/invest-like-the-best/{guest-slug}.md`
+- People page: `people/{guest-slug}.md`
+
+These are NOT interchangeable. `sources/` is for raw data only. Per `_brain-filing-rules.md`: content with a primary subject (a person, an episode) does NOT go in `sources/`.
 
 ### Phase 2: Read the full source
 
@@ -141,11 +151,12 @@ If any NO: return to the transcript and pull the missing detail. Do not declare 
 
 ### Phase 5: Create or update the episode file
 
-**Path:** `sources/{series-name}/{guest-slug}.md`
+**Path:** `media/podcasts/{series-name}/{guest-slug}.md`
 
-- ILTB specifically: `sources/invest-like-the-best/{guest-slug}.md`
+- ILTB specifically: `media/podcasts/invest-like-the-best/{guest-slug}.md`
 - If file exists: merge — don't overwrite sections that are already better; append new data
 - If file is new: write with full frontmatter (see Output Format below)
+- Include back-link to people page: `**People page:** [[people/{guest-slug}]]`
 
 After writing: `gbrain sync --repo /data/brain --no-pull`
 
@@ -155,13 +166,13 @@ After writing: `gbrain sync --repo /data/brain --no-pull`
 
 If the people page doesn't exist yet, create it with:
 - Title, firm, role
-- Back-link to the episode file: `[[sources/{series-name}/{guest-slug}]]`
+- Back-link to the episode file: `[[media/podcasts/{series-name}/{guest-slug}]]`
 - Key identifying facts (2-3 sentences)
 - Timeline entry for the episode date
 
 If the page exists: add the back-link and a timeline entry.
 
-Run `gbrain add-link people/{guest-slug} sources/{series-name}/{guest-slug}` if the CLI supports it, otherwise ensure the back-link is in the markdown.
+Run `gbrain add-link people/{guest-slug} media/podcasts/{series-name}/{guest-slug}` if the CLI supports it, otherwise ensure the back-link is in the markdown.
 
 ### Phase 7: Entity detection and enrichment
 
@@ -182,7 +193,7 @@ For each entity:
 Check if 3 or more episodes in this series are now in the brain.
 
 If yes:
-- Open or create `sources/{series-name}/_cross-cuts/{theme}.md`
+- Open or create `media/podcasts/{series-name}/_cross-cuts/{theme}.md`
 - Themes to check/update: `investment-philosophy.md`, `fund-building.md`, `operator-vs-investor.md`, `capital-strategy.md`, `risk-and-mistakes.md` (add new themes as they emerge)
 - Cross-cut format:
   - **Name the pattern explicitly** (e.g., "Concentration beats diversification")
@@ -241,7 +252,8 @@ themes:
 ```markdown
 # {Guest Name} — {Episode Title} ({Series})
 
-**People page:** [[people/{guest-slug}]] — {Role}, {Firm}
+**People page:** [[people/{guest-slug}]] | {Role}, {Firm}
+**Raw transcript:** [[sources/invest-like-the-best/_raw-transcripts/{filename}]]
 
 ---
 
@@ -277,12 +289,12 @@ themes:
 
 **Role:** {Title}
 **Firm:** {Firm Name}
-**Episode:** [[sources/{series-name}/{guest-slug}]]
+**Episode:** [[media/podcasts/{series-name}/{guest-slug}]]
 
 {2-3 sentence summary — who they are and what they're known for}
 
 ## Timeline
-- {YYYY-MM-DD}: Featured on {series} — [[sources/{series-name}/{guest-slug}]]
+- {YYYY-MM-DD}: Featured on {series} — [[media/podcasts/{series-name}/{guest-slug}]]
 ```
 
 ---
