@@ -33,7 +33,7 @@ intellectual capital. Entities are bookkeeping. Both compound over time.
 
 This skill guarantees:
 - Fires on every message (no exceptions unless purely operational)
-- Runs as a **persistent session** — spawned ONCE at session start, reused via `sessions_send` for every message (never re-spawned per message)
+- Runs as a **per-message spawn** (`mode: run`) — persistent session mode is not available in this environment (requires thread-bound channel plugin hooks)
 - Runs in parallel (never blocks main response)
 - Captures ideas with the user's EXACT phrasing (no paraphrasing)
 - Detects entity mentions and creates/enriches brain pages
@@ -43,28 +43,20 @@ This skill guarantees:
 
 ## Spawn Pattern (MANDATORY)
 
-**At session start (once only):**
+**On every inbound message (parallel, non-blocking):**
 ```
 sessions_spawn(
-  task: "You are the GBrain signal detector. Read /data/gbrain/skills/signal-detector/SKILL.md and await messages. For each message sent to you, run the skill phases and respond with only the signal log line.",
-  mode: "session",
-  model: "sonnet",  // sonnet-class — entity extraction + classification
-  lightContext: true,  // minimal bootstrap — skill file is self-contained
+  task: "Read /data/gbrain/skills/signal-detector/SKILL.md then process this message: <raw user message>",
+  mode: "run",
+  model: "sonnet",
+  lightContext: true,
   label: "signal-detector"
 )
 ```
-Store the returned session key. Reuse it for the entire session.
+Fire-and-forget. Do NOT block the main response waiting for completion.
 
-**On every inbound message:**
-```
-sessions_send(sessionKey: <stored-key>, message: <raw user message>)
-```
-Do NOT re-spawn. The cache warms on message 1 and reuses for all subsequent messages.
-
-**Why persistent session beats per-message spawn:**
-- Per-message spawn: cold cache every time — full system prompt + skill loaded fresh, thrown away
-- Persistent session: cache warms once on first message, reused for messages 2-N
-- Cost difference at 50 messages: ~50x fewer cold-cache loads
+**Note:** Persistent session mode (`mode: session`) would be preferred for cache efficiency but requires
+thread-bound channel plugin hooks not available in this deployment. Use `mode: run` per message.
 
 ## Iron Law: Back-Linking (MANDATORY)
 
@@ -130,7 +122,7 @@ The output is brain pages created/updated and the signal log line.
 
 ## Anti-Patterns
 
-- **Re-spawning per message** — this is the primary cost driver; use `sessions_send` to the persistent session instead
+- **Blocking main response** to wait for signal detection to complete — always fire-and-forget
 - Blocking the main response to wait for signal detection to complete
 - Paraphrasing the user's original thinking instead of capturing exact phrasing
 - Creating pages for non-notable entities (one-off mentions)
