@@ -49,6 +49,23 @@ Every time this skill creates or updates a brain page that mentions a person or 
 
 ## Phases
 
+### Phase 0: Pre-Flight Classification (MANDATORY — run first, before anything else)
+
+Classify the message as **operational** or **substantive** before doing any work.
+
+**Operational messages — EXIT IMMEDIATELY, do not proceed to Phase 1:**
+- Acknowledgements: "ok", "got it", "thanks", "sure", "yep", "nope", "sounds good"
+- Short confirmations or one-word replies with no idea content
+- Pure commands with no embedded thinking: "do it", "go ahead", "fix it", "ship it"
+- Heartbeat pings, system messages, session resets
+- Messages that are ONLY logistics with zero intellectual content
+
+If operational → log `Signals: 0 ideas, 0 entities, 0 facts (skipped: operational)` and **STOP. Do not proceed.**
+
+If substantive → continue to Phase 1.
+
+---
+
 ### Phase 1: Idea/Observation Detection (PRIMARY)
 
 When the user expresses a novel thought, observation, thesis, or framework:
@@ -90,7 +107,9 @@ The output is brain pages created/updated and the signal log line.
 - Paraphrasing the user's original thinking instead of capturing exact phrasing
 - Creating pages for non-notable entities (one-off mentions)
 - Skipping back-links after creating/updating pages
-- Running on purely operational messages ("ok", "thanks", "do it")
+- Skipping Phase 0 — classification MUST happen before any tool calls
+- Proceeding past Phase 0 on operational messages — exit immediately, no tool calls
+- Treating Phase 0 as optional or a soft guideline — it is a hard gate
 
 ## Tools Used
 
