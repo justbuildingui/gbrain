@@ -2,11 +2,11 @@
 name: signal-detector
 version: 1.0.0
 description: |
-  Always-on ambient signal capture. Fires on every inbound message to detect
-  original thinking and entity mentions. Spawns a lightweight sub-agent
-  per message (async, fire-and-forget). Never blocks main response.
+  Always-on ambient signal capture. Fires on every substantive inbound message
+  to detect original thinking and entity mentions. Skips operational messages.
+  Spawns a lightweight sub-agent per message (async, fire-and-forget). Never blocks main response.
 triggers:
-  - every inbound message (always-on)
+  - every substantive inbound message (skips operational messages)
 tools:
   - search
   - query
@@ -19,7 +19,7 @@ mutating: true
 
 # Signal Detector — Ambient Brain Capture
 
-Lightweight sub-agent that fires on every inbound message to capture TWO things
+Lightweight sub-agent that fires on every **substantive** inbound message to capture TWO things
 with EQUAL priority:
 
 1. **Original thinking** — the user's ideas, observations, theses, frameworks
@@ -31,7 +31,7 @@ intellectual capital. Entities are bookkeeping. Both compound over time.
 ## Contract
 
 This skill guarantees:
-- Fires on every message (no exceptions unless purely operational)
+- Fires on every **substantive** message (skips operational messages — see Phase 0)
 - Spawns a lightweight sub-agent per message (`mode: run`) — async, fire-and-forget
 - Runs in parallel (never blocks main response)
 - Captures ideas with the user's EXACT phrasing (no paraphrasing)
@@ -42,7 +42,7 @@ This skill guarantees:
 
 ## Spawn Pattern (MANDATORY)
 
-**On every inbound message (parallel, non-blocking):**
+**On every substantive inbound message (parallel, non-blocking — skip if operational per Phase 0):**
 ```
 sessions_spawn(
   task: "Read /data/gbrain/skills/signal-detector/SKILL.md then process this message: <raw user message>",
