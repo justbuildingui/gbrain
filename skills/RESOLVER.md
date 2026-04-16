@@ -26,8 +26,11 @@ This is the dispatcher. Skills are the implementation. **Read the skill file bef
 |---------|-------|
 | User shares a link, article, tweet, or idea | `skills/idea-ingest/SKILL.md` |
 | Video, audio, PDF, book, YouTube, screenshot | `skills/media-ingest/SKILL.md` |
+| Podcast/interview transcript or long-form essay where author worldview matters | `skills/deep-ingest/SKILL.md` |
 | Meeting transcript received | `skills/meeting-ingestion/SKILL.md` |
 | Generic "ingest this" (auto-routes to above) | `skills/ingest/SKILL.md` |
+
+> **Disambiguation — media-ingest vs. deep-ingest:** For full podcast transcripts or essays requiring memo-quality summaries, use **deep-ingest**, not media-ingest.
 
 ## Thinking skills (from GStack)
 

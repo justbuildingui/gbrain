@@ -128,6 +128,11 @@
       "name": "data-research",
       "path": "data-research/SKILL.md",
       "description": "Structured data research: search, extract, archive, deduplicate, track. Parameterized YAML recipes for investor updates, donations, company metrics."
+    },
+    {
+      "name": "deep-ingest",
+      "path": "deep-ingest/SKILL.md",
+      "description": "Deep-ingest podcast/interview transcripts and long-form essays at memo quality. Per-source summaries pass the 5-question quality test; cross-cutting pattern analysis across corpus."
     }
   ],
   "dependencies": {
