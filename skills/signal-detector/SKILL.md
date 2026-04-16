@@ -3,8 +3,9 @@ name: signal-detector
 version: 1.0.0
 description: |
   Always-on ambient signal capture. Fires on every inbound message to detect
-  original thinking and entity mentions. Spawn as a cheap sub-agent in parallel,
-  never block the main response.
+  original thinking and entity mentions. Runs as a PERSISTENT SESSION (not a
+  fresh spawn per message) — started once at session boot, reused via
+  sessions_send for every subsequent message. Never blocks main response.
 triggers:
   - every inbound message (always-on)
 tools:
@@ -32,12 +33,38 @@ intellectual capital. Entities are bookkeeping. Both compound over time.
 
 This skill guarantees:
 - Fires on every message (no exceptions unless purely operational)
-- Runs in parallel (spawned, never blocks main response)
+- Runs as a **persistent session** — spawned ONCE at session start, reused via `sessions_send` for every message (never re-spawned per message)
+- Runs in parallel (never blocks main response)
 - Captures ideas with the user's EXACT phrasing (no paraphrasing)
 - Detects entity mentions and creates/enriches brain pages
 - Logs a one-line summary of what was captured
 - Back-links all entity mentions (Iron Law)
 - Citations on every fact written
+
+## Spawn Pattern (MANDATORY)
+
+**At session start (once only):**
+```
+sessions_spawn(
+  task: "You are the GBrain signal detector. Read /data/gbrain/skills/signal-detector/SKILL.md and await messages. For each message sent to you, run the skill phases and respond with only the signal log line.",
+  mode: "session",
+  model: "haiku",  // cheapest viable model — entity extraction + classification
+  lightContext: true,  // minimal bootstrap — skill file is self-contained
+  label: "signal-detector"
+)
+```
+Store the returned session key. Reuse it for the entire session.
+
+**On every inbound message:**
+```
+sessions_send(sessionKey: <stored-key>, message: <raw user message>)
+```
+Do NOT re-spawn. The cache warms on message 1 and reuses for all subsequent messages.
+
+**Why persistent session beats per-message spawn:**
+- Per-message spawn: cold cache every time — full system prompt + skill loaded fresh, thrown away
+- Persistent session: cache warms once on first message, reused for messages 2-N
+- Cost difference at 50 messages: ~50x fewer cold-cache loads
 
 ## Iron Law: Back-Linking (MANDATORY)
 
@@ -103,6 +130,7 @@ The output is brain pages created/updated and the signal log line.
 
 ## Anti-Patterns
 
+- **Re-spawning per message** — this is the primary cost driver; use `sessions_send` to the persistent session instead
 - Blocking the main response to wait for signal detection to complete
 - Paraphrasing the user's original thinking instead of capturing exact phrasing
 - Creating pages for non-notable entities (one-off mentions)
@@ -110,6 +138,7 @@ The output is brain pages created/updated and the signal log line.
 - Skipping Phase 0 — classification MUST happen before any tool calls
 - Proceeding past Phase 0 on operational messages — exit immediately, no tool calls
 - Treating Phase 0 as optional or a soft guideline — it is a hard gate
+- Using Opus or Sonnet for the signal detector — Haiku is sufficient for classification and entity extraction
 
 ## Tools Used
 
