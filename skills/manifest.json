@@ -133,6 +133,11 @@
       "name": "deep-ingest",
       "path": "deep-ingest/SKILL.md",
       "description": "Deep-ingest podcast/interview transcripts and long-form essays at memo quality. Per-source summaries pass the 5-question quality test; cross-cutting pattern analysis across corpus."
+    },
+    {
+      "name": "batch-ingest",
+      "path": "batch-ingest/SKILL.md",
+      "description": "Batch orchestration for deep-ingest. Processes multiple transcripts from the same series, deferring cross-cuts until the entire batch completes."
     }
   ],
   "dependencies": {

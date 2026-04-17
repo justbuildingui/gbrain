@@ -47,7 +47,7 @@ This skill guarantees:
 sessions_spawn(
   task: "Read /data/gbrain/skills/signal-detector/SKILL.md then process this message: <raw user message>",
   mode: "run",
-  model: "minimax-m2.7",
+  model: "sonnet",
   lightContext: true,
   label: "signal-detector"
 )
