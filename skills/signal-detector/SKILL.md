@@ -1,12 +1,12 @@
 ---
 name: signal-detector
-version: 1.0.0
+version: 2.0.0
 description: |
-  Always-on ambient signal capture. Fires on every substantive inbound message
-  to detect original thinking and entity mentions. Skips operational messages.
-  Spawns a lightweight sub-agent per message (async, fire-and-forget). Never blocks main response.
+  Always-on ambient signal capture. Fires on every inbound message
+  to detect original thinking and entity mentions. Spawns a sub-agent per message
+  (async, fire-and-forget). Never blocks main response.
 triggers:
-  - every substantive inbound message (skips operational messages)
+  - every inbound message
 tools:
   - search
   - query
@@ -31,8 +31,8 @@ intellectual capital. Entities are bookkeeping. Both compound over time.
 ## Contract
 
 This skill guarantees:
-- Fires on every **substantive** message (skips operational messages — see Phase 0)
-- Spawns a lightweight sub-agent per message (`mode: run`) — async, fire-and-forget
+- Fires on every inbound message
+- Spawns a sub-agent per message (`mode: run`) — async, fire-and-forget
 - Runs in parallel (never blocks main response)
 - Captures ideas with the user's EXACT phrasing (no paraphrasing)
 - Detects entity mentions and creates/enriches brain pages
@@ -42,12 +42,12 @@ This skill guarantees:
 
 ## Spawn Pattern (MANDATORY)
 
-**On every substantive inbound message (parallel, non-blocking — skip if operational per Phase 0):**
+**On every inbound message (parallel, non-blocking):**
 ```
 sessions_spawn(
   task: "Read /data/gbrain/skills/signal-detector/SKILL.md then process this message: <raw user message>",
   mode: "run",
-  model: "sonnet",
+  model: "minimax-m2.7",
   lightContext: true,
   label: "signal-detector"
 )
@@ -63,23 +63,6 @@ Every time this skill creates or updates a brain page that mentions a person or 
 4. An unlinked mention is a broken brain.
 
 ## Phases
-
-### Phase 0: Pre-Flight Classification (MANDATORY — run first, before anything else)
-
-Classify the message as **operational** or **substantive** before doing any work.
-
-**Operational messages — EXIT IMMEDIATELY, do not proceed to Phase 1:**
-- Acknowledgements: "ok", "got it", "thanks", "sure", "yep", "nope", "sounds good"
-- Short confirmations or one-word replies with no idea content
-- Pure commands with no embedded thinking: "do it", "go ahead", "fix it", "ship it"
-- Heartbeat pings, system messages, session resets
-- Messages that are ONLY logistics with zero intellectual content
-
-If operational → log `Signals: 0 ideas, 0 entities, 0 facts (skipped: operational)` and **STOP. Do not proceed.**
-
-If substantive → continue to Phase 1.
-
----
 
 ### Phase 1: Idea/Observation Detection (PRIMARY)
 
@@ -122,10 +105,7 @@ The output is brain pages created/updated and the signal log line.
 - Paraphrasing the user's original thinking instead of capturing exact phrasing
 - Creating pages for non-notable entities (one-off mentions)
 - Skipping back-links after creating/updating pages
-- Skipping Phase 0 — classification MUST happen before any tool calls
-- Proceeding past Phase 0 on operational messages — exit immediately, no tool calls
-- Treating Phase 0 as optional or a soft guideline — it is a hard gate
-- Using Opus for the signal detector — Sonnet is the appropriate model for classification and entity extraction
+- Using Opus for the signal detector — use the same model as the main agent
 
 ## Tools Used
 
